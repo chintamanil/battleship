@@ -23,11 +23,18 @@ function write(data) {
     console.log(data);
 }
 
+/**
+ * Ship object. Has state mapped to 'STATE' & length
+ */
 function Ship() {
     this.length = 3;
     this.state = STATE.D;
 }
-
+/**
+ * [hit : Check if length == 0. & set state based on that]
+ *
+ * @return {[STATE]} [string]
+ */
 Ship.prototype.hit = function() {
     if (this.length) {
         this.state = 'H';
@@ -39,6 +46,9 @@ Ship.prototype.hit = function() {
     return this.state;
 };
 
+/**
+ * Board is a 2D array of 5x5.
+ */
 function Board() {
     this.board = _.range(ROWS).map(function() {
         return _.range(COLS).map(function() {
@@ -47,6 +57,13 @@ function Board() {
     });
 }
 
+/**
+ * [printBoard : Prints the board]
+ *
+ * @param  {Function} cb [Callback that takes string & prints that as board]
+ *
+ * @return {[null]}      [null]
+ */
 Board.prototype.printBoard = function(cb) {
     var value, printed;
     var view = [];
@@ -66,6 +83,14 @@ Board.prototype.printBoard = function(cb) {
     cb(view.join('\n'));
 };
 
+/**
+ * Checks if the give rowNo & ColNo has a ship. And returns STATE accordingly
+ *
+ * @param  {[Int]} rowNo [Row number]
+ * @param  {[Int]} colNo [Col number]
+ *
+ * @return {[STATE]}       [String showing STATE]
+ */
 Board.prototype.check = function(rowNo, colNo) {
     var state, i;
     var isShip = this.board[rowNo][colNo];
@@ -92,6 +117,11 @@ Board.prototype.check = function(rowNo, colNo) {
     return STATE.M;
 };
 
+/**
+ * [setShips : For this board takes a list & maps it to a ship on board ]
+ *
+ * @param {[Array]} list [Array of length 5. Ships Column location as [-1,0,1,2] only]
+ */
 Board.prototype.setShips = function(list) {
     var i, j, value, ship;
     for (i = 0; i < list.length; i++) {
@@ -106,12 +136,25 @@ Board.prototype.setShips = function(list) {
     this.printBoard(write);
 };
 
+/**
+ * Player object which has a board & predefined ships/boats
+ *
+ * @param {[type]} name [description]
+ */
 function Player(name) {
     this.name = name || 'Default';
     this.board = new Board();
     this.boats = 3;
 }
 
+/**
+ * [getShips : gets the Array of Ships as string ]
+ *
+ * @param  {Function} cb    [Start / turn function to run after player 2]
+ * @param  {[Player]}   other [2nd player]
+ *
+ * @return {[null]}         [null]
+ */
 Player.prototype.getShips = function(cb, other) {
     var _that = this;
     rl.question(_that.name + " Enter Ships location as Array of five \n", function(locationList) {
@@ -133,6 +176,15 @@ Player.prototype.setup = function(opponent, cb) {
     return;
 };
 
+/**
+ * [turn description]
+ *
+ * @param  {[Player]}   opponent [Other player]
+ * @param  {Function} cb       [executes turnEnd Function]
+ * @param  {[boolean]}   result   [true = game won]
+ *
+ * @return {[cb]}            [executes cb function]
+ */
 Player.prototype.turn = function(opponent, cb, result) {
     var _that = this;
     rl.question('Enter Row Number 0-4: ', function(row) {
@@ -155,6 +207,9 @@ Player.prototype.turn = function(opponent, cb, result) {
     });
 };
 
+/**
+ * [Game Object that defines the Players. Initializes the game & defines the turn methods]
+ */
 function Game() {
     this.players = [];
     this.count = 0;
