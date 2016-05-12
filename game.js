@@ -48,20 +48,21 @@ function Board() {
 }
 
 Board.prototype.printBoard = function(cb) {
-    var i, j, value, printed;
+    var value, printed;
     var view = [];
-    for (i = 0; i < ROWS; i++) {
+    var _that = this;
+    _.range(ROWS).map(function(i) {
         printed = [];
-        for (j = 0; j < COLS; j++) {
-            value = this.board[i][j];
+        _.range(COLS).map(function(j) {
+            value = _that.board[i][j];
             if (typeof value === 'string') {
                 printed.push(value);
             } else {
                 printed.push(STATE.D);
             }
-        }
+        });
         view.push(printed.join(''));
-    }
+    });
     cb(view.join('\n'));
 };
 
