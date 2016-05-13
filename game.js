@@ -16,7 +16,7 @@ var STATE = {
     'M': 'Miss',
     'S': 'Sunk',
     'W': 'Wrong',
-    'D': 'X'
+    'D': '.'
 };
 
 function write(data) {
@@ -26,23 +26,32 @@ function write(data) {
 /**
  * Ship object. Has state mapped to 'STATE' & length
  */
-function Ship() {
-    this.length = 3;
+function Ship(value) {
+    this.location = ['X', 'X', 'X'];
     this.state = STATE.D;
+    this.start = value;
 }
 /**
  * [hit : Check if length == 0. & set state based on that]
  *
  * @return {[STATE]} [string]
  */
-Ship.prototype.hit = function() {
-    if (this.length) {
-        this.state = 'H';
-        this.length--;
+Ship.prototype.hit = function(locationId) {
+    // var value = this.location[locationId - this.start];
+    this.location[locationId - this.start] = 'H';
+    this.state = 'H';
+    var check = this.location.indexOf('X');
+    if(check === -1 ){
+         this.location = ['S', 'S', 'S'];
+         this.state = 'S';
     }
-    if (!this.length) {
-        this.state = 'S';
-    }
+    // if (this.length) {
+    //     this.state = 'H';
+    //     this.length--;
+    // }
+    // if (!this.length) {
+    //     this.state = 'S';
+    // }
     return this.state;
 };
 
@@ -101,7 +110,7 @@ Board.prototype.check = function(rowNo, colNo) {
         }
         return STATE.W;
     }
-    state = isShip.hit();
+    state = isShip.hit(rowNo);
     this.board[rowNo][colNo] = state;
     if (state === 'H') {
         return STATE.H;
@@ -127,7 +136,7 @@ Board.prototype.setShips = function(list) {
     for (i = 0; i < list.length; i++) {
         value = parseInt(list[i], 10);
         if (value !== -1) {
-            ship = new Ship();
+            ship = new Ship(list[i]);
             for (j = value; j < SHIPS + value; j++) {
                 this.board[j][i] = ship;
             }
