@@ -16,7 +16,7 @@ var STATE = {
     'M': 'Miss',
     'S': 'Sunk',
     'W': 'Wrong',
-    'D': '.'
+    'D': 'X'
 };
 
 function write(data) {
