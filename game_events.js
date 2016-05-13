@@ -1,7 +1,7 @@
 var _ = require('underscore');
 var readline = require('readline');
-// var util = require('util');
-// var events = require('events');
+var util = require('util');
+var events = require('events');
 
 var rl = readline.createInterface({
     input: process.stdin,
@@ -148,96 +148,41 @@ function Player(name) {
 }
 
 /**
- * [getShips : gets the Array of Ships as string ]
- *
- * @param  {Function} cb    [Start / turn function to run after player 2]
- * @param  {[Player]}   other [2nd player]
- *
- * @return {[null]}         [null]
- */
-Player.prototype.getShips = function(cb, other) {
-    var _that = this;
-    rl.question(_that.name + " Enter Ships location as Array of five \n", function(locationList) {
-        if (locationList === 'exit') {
-            rl.close();
-            return;
-        }
-        var list = locationList.substr(1, locationList.length - 2).split(',');
-        _that.board.setShips(list);
-        if (other) {
-            return other.getShips(cb);
-        }
-        cb();
-    });
-};
-
-Player.prototype.setup = function(opponent, cb) {
-    this.getShips(cb, opponent);
-    return;
-};
-
-/**
- * [turn description]
- *
- * @param  {[Player]}   opponent [Other player]
- * @param  {Function} cb       [executes turnEnd Function]
- * @param  {[boolean]}   result   [true = game won]
- *
- * @return {[cb]}            [executes cb function]
- */
-Player.prototype.turn = function(opponent, cb, result) {
-    var _that = this;
-    rl.question('Enter Row Number 0-4: ', function(row) {
-        rl.question('Enter Col Number 0-4: ', function(col) {
-            row = parseInt(row, 10);
-            col = parseInt(col, 10);
-            var check = opponent.board.check(row, col);
-            if (check === STATE.W) {
-                write('Invalid Row Col Entered! Try again !!');
-                _that.turn(opponent, cb);
-            }
-            if (check === STATE.S) {
-                opponent.boats--;
-                return opponent.boats ? cb(false) : cb(true);
-            }
-            if (check === STATE.H || check === STATE.M) {
-                return cb(false);
-            }
-        });
-    });
-};
-
-/**
  * [Game Object that defines the Players. Initializes the game & defines the turn methods]
  */
 function Game() {
     this.players = [];
     this.count = 0;
-    // events.EventEmitter.call(this);
-    var game = this;
+
     _.range(2).map(function(i) {
         game.players[i] = new Player('Player-' + (i + 1));
     });
+
+    events.EventEmitter.call(this);
+    var game = this;
+
     this.init = function() {
-        game.players[0].setup(game.players[1], this.turn);
+        game.getShips(0);
     };
 
-    this.turn = function() {
-        var opponent, odd;
+    this.on('changeTurn', function() {
+        var opponent, odd, next;
         odd = game.count % 2;
         write(game.players[odd].name + "'s turn");
         write('Opponents Board Layout');
         if (odd) {
             opponent = game.players[0];
+            next = 0;
         } else {
             opponent = game.players[1];
+            next = 1;
         }
         opponent.board.printBoard(write);
         write('Boats left for opponent: ' + opponent.boats);
-        game.players[odd].turn(opponent, game.turnEnd);
-    };
+        game.getRowCol(odd, next);
+    });
 
-    this.turnEnd = function(victor) {
+    this.on('checkWinner', function(victor) {
         var victorName;
         write('--------------------');
         if (victor) {
@@ -246,12 +191,55 @@ function Game() {
             process.exit(0);
         } else {
             game.count++;
-            game.turn();
+            game.emit('changeTurn');
         }
-    };
+    });
+    game.init();
 }
 
-// util.inherits(Game, events.EventEmitter);
+Game.prototype.getShips = function(playerNo) {
+    var _that = this;
+    rl.question(_that.players[playerNo].name + ' Enter Ships location as Array of five \n', function(locationList) {
+        if (locationList === 'exit') {
+            rl.close();
+            return;
+        }
+        var list = locationList.substr(1, locationList.length - 2).split(',');
+        _that.players[playerNo].board.setShips(list);
+        if (playerNo === 0) {
+             _that.getShips(1);
+        }
+        if (playerNo === 1) {
+            _that.emit('changeTurn');
+        }
+        return;
+    });
+};
+
+Game.prototype.getRowCol = function(current, next) {
+    var _that = this;
+    rl.question('Enter Row Number 0-4: ', function(row) {
+        rl.question('Enter Col Number 0-4: ', function(col) {
+            row = parseInt(row, 10);
+            col = parseInt(col, 10);
+            var check = _that.players[next].board.check(row, col);
+            if (check === STATE.W) {
+                write('Invalid Row Col Entered! Try again !!');
+                _that.getRowCol(current, next);
+            }
+            if (check === STATE.S) {
+                _that.players[next].boats--;
+                return _that.players[next].boats
+                    ? _that.emit('checkWinner', false)
+                    : _that.emit('checkWinner', true);
+            }
+            if (check === STATE.H || check === STATE.M) {
+                return _that.emit('checkWinner', false);
+            }
+        });
+    });
+};
+
+util.inherits(Game, events.EventEmitter);
+
 var game = new Game();
-game.init();
-// process.exit(0);
