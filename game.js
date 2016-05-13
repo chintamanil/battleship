@@ -55,6 +55,10 @@ Ship.prototype.hit = function(locationId) {
     return this.state;
 };
 
+Ship.prototype.getShipState = function(rowNum) {
+    return this.location[rowNum - this.start];
+};
+
 /**
  * Board is a 2D array of 5x5.
  */
@@ -84,7 +88,7 @@ Board.prototype.printBoard = function(cb) {
             if (typeof value === 'string') {
                 printed.push(value);
             } else {
-                printed.push(STATE.D);
+                printed.push(value.getShipState(i));
             }
         });
         view.push(printed.join(''));
