@@ -27,7 +27,9 @@ function write(data) {
  * Ship object. Has state mapped to 'STATE' & length
  */
 function Ship(value) {
-    this.location = ['X', 'X', 'X'];
+    this.location = _.range(SHIPS).map(function() {
+        return STATE.D;
+    });
     this.state = STATE.D;
     this.start = value;
 }
@@ -41,9 +43,11 @@ Ship.prototype.hit = function(locationId) {
     this.location[locationId - this.start] = 'H';
     this.state = 'H';
     var check = this.location.indexOf('X');
-    if(check === -1 ){
-         this.location = ['S', 'S', 'S'];
-         this.state = 'S';
+    if (check === -1) {
+        this.location = _.range(SHIPS).map(function() {
+            return 'S';
+        });
+        this.state = 'S';
     }
     // if (this.length) {
     //     this.state = 'H';
