@@ -12,7 +12,9 @@ $ npm install
 #### Run
 
 ```
-$ node battleships.js
+$ npm start # for running callback version of game
+$ npm run event #f for running game written with nodes event emitter
+$ npm test # for running mocha tests
 ```
 
 
